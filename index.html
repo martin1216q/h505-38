@@ -2,6 +2,38 @@
 <html lang="th">
 <head>
     <style>
+  /* ป้องกันการลากเลือกข้อความ */
+  * {
+    user-select: none; /* ไม่อนุญาตให้เลือกข้อความ */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+
+  /* ป้องกันการลาก (เช่น ลากข้อความหรือรูปภาพ) */
+  body, img, div {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+  }
+</style>
+
+<script>
+  // ปิดเมนูคลิกขวา
+  document.addEventListener('contextmenu', event => event.preventDefault());
+
+  // ปิดการลากวัตถุ
+  document.addEventListener('dragstart', event => event.preventDefault());
+
+  // ปิดการคัดลอก
+  document.addEventListener('copy', event => event.preventDefault());
+
+  // ปิดการเลือกข้อความ (บน iOS ด้วย)
+  document.addEventListener('selectstart', event => event.preventDefault());
+</script>
+    <style>
         /* ป้องกันการเลือกข้อความทั่วไป */
         * {
             user-select: none;

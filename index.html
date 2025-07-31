@@ -318,7 +318,7 @@
             level++;
             
             // Show score popup
-            showScorePopup(+${totalPoints}, 'correct');
+            showScorePopup(`+${totalPoints}`, 'correct');
             
             setTimeout(() => {
                 gameCard.classList.remove('correct-effect');
@@ -360,7 +360,7 @@
         // Show score popup
         function showScorePopup(points, type) {
             const popup = document.createElement('div');
-            popup.className = score-popup fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl font-bold z-50 ${type === 'correct' ? 'text-green-500' : 'text-red-500'};
+            popup.className = `score-popup fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl font-bold z-50 ${type === 'correct' ? 'text-green-500' : 'text-red-500'}`;
             popup.textContent = points;
             document.body.appendChild(popup);
             
@@ -446,7 +446,7 @@
             leaderboardData.forEach((data, index) => {
                 const item = document.createElement('div');
                 item.className = 'flex justify-between items-center bg-orange-50 rounded-lg p-3';
-                item.innerHTML = 
+                item.innerHTML = `
                     <div class="flex items-center">
                         <span class="text-2xl mr-3">${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅'}</span>
                         <div>
@@ -458,7 +458,7 @@
                         <div class="font-bold text-orange-600">${data.score} คะแนน</div>
                         <div class="text-sm text-gray-600">ระดับ ${data.level}</div>
                     </div>
-                ;
+                `;
                 leaderboardContainer.appendChild(item);
             });
         }
@@ -467,4 +467,4 @@
         window.addEventListener('load', initGame);
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'967405cee41610f8',t:'MTc1Mzg2OTc3MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
-</html> 
+</html>

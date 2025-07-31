@@ -2,113 +2,61 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>เกมลากคำ</title>
   <style>
-    /* ป้องกันการคัดลอกทั้งหมด */
     * {
       user-select: none;
       -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      -webkit-touch-callout: none;
     }
-
-    /* อนุญาตให้ลากเฉพาะ .word-option */
     .word-option {
-      -webkit-user-drag: element !important;
-      user-drag: element !important;
       user-select: auto !important;
-      -webkit-user-select: auto !important;
+      cursor: grab;
+      background-color: #4CAF50;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin: 5px;
+      display: inline-block;
     }
-
-    /* พื้นหลัง */
-    body {
-      font-family: sans-serif;
-      padding: 2rem;
-    }
-
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .sentence {
-      margin-bottom: 2rem;
-    }
-
     .word-slot {
       display: inline-block;
       width: 100px;
       height: 30px;
-      margin: 0 5px;
       border: 2px dashed #aaa;
+      margin: 0 10px;
       vertical-align: middle;
       text-align: center;
       line-height: 30px;
-      pointer-events: auto;
-    }
-
-    .options {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .word-option {
-      background: #4CAF50;
-      color: white;
-      padding: 10px 15px;
-      border-radius: 5px;
-      cursor: grab;
     }
   </style>
 </head>
 <body oncontextmenu="return false" onselectstart="return false" ondragstart="return false">
-
-  <div class="container">
-    <div class="sentence">
-      ฉันมี <div class="word-slot" ondrop="drop(event)" ondragover="allowDrop(event)"></div> อยู่ในกระเป๋า
-    </div>
-    <div class="options">
-      <div class="word-option" draggable="true" ondragstart="drag(event)" id="word1">หนังสือ</div>
-      <div class="word-option" draggable="true" ondragstart="drag(event)" id="word2">แมว</div>
-      <div class="word-option" draggable="true" ondragstart="drag(event)" id="word3">ปลา</div>
-    </div>
+  <p>ฉันมี <span class="word-slot" ondrop="drop(event)" ondragover="allowDrop(event)"></span> อยู่ในกระเป๋า</p>
+  <div>
+    <div class="word-option" id="word1" draggable="true" ondragstart="drag(event)">หนังสือ</div>
+    <div class="word-option" id="word2" draggable="true" ondragstart="drag(event)">แมว</div>
   </div>
 
   <script>
-    // อนุญาตให้วาง
     function allowDrop(ev) {
       ev.preventDefault();
     }
-
-    // เริ่มลาก
     function drag(ev) {
       ev.dataTransfer.setData("text", ev.target.id);
     }
-
-    // วางคำลงในช่อง
     function drop(ev) {
       ev.preventDefault();
       const data = ev.dataTransfer.getData("text");
-      const draggedEl = document.getElementById(data);
-
-      // ถ้ามีคำอยู่แล้วในช่อง ให้คืนกลับไปที่ options ก่อน
-      const current = ev.target.querySelector(".word-option");
-      if (current) {
-        document.querySelector(".options").appendChild(current);
+      const word = document.getElementById(data);
+      if (ev.target.firstChild) {
+        document.body.appendChild(ev.target.firstChild); // คืนของเดิม
       }
-
-      ev.target.appendChild(draggedEl);
+      ev.target.appendChild(word);
     }
-
-    // ป้องกัน Ctrl+U, F12, Ctrl+C, Ctrl+Shift+I/J
     document.onkeydown = function(e) {
-      if (e.keyCode === 123) return false; // F12
-      if (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) return false;
-      if (e.ctrlKey && ['U', 'S', 'C'].includes(e.key.toUpperCase())) return false;
+      if (e.keyCode === 123 || (e.ctrlKey && ['U', 'C'].includes(e.key.toUpperCase()))) {
+        return false;
+      }
     };
   </script>
 </body>

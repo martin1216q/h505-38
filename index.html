@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+    <style>
+  * {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-touch-callout: none;
+      }
+    </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เกมคำราชาศัพท์</title>
@@ -467,4 +476,24 @@
         window.addEventListener('load', initGame);
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'967405cee41610f8',t:'MTc1Mzg2OTc3MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>
+  // ปิดคลิกขวา
+  document.addEventListener('contextmenu', e => e.preventDefault());
+
+  // ปิดการเลือกข้อความ
+  document.addEventListener('selectstart', e => e.preventDefault());
+
+  // ปิดการแตะค้างบน iOS (touch-hold)
+  document.addEventListener('touchstart', function (e) {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', function (e) {
+    const now = new Date().getTime();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
+  });
+</script>
+
 </html>

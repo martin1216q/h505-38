@@ -130,6 +130,36 @@
 </head>
 
 <body class="bg-gradient-to-br from-orange-100 to-orange-200 min-h-screen">
+        <script>
+        // ป้องกันคลิกขวา
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // ป้องกันปุ่มลัดต่างๆ เช่น Ctrl+U, Ctrl+C, F12
+        document.addEventListener('keydown', function (e) {
+            if (
+                e.keyCode === 123 || // F12
+                (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key.toUpperCase())) ||
+                (e.ctrlKey && ['U', 'S', 'C'].includes(e.key.toUpperCase()))
+            ) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // ป้องกันการลากข้อความ
+        document.addEventListener('dragstart', event => event.preventDefault());
+
+        // ป้องกันการกด Inspect Element
+        document.onkeydown = function (e) {
+            if (e.keyCode === 123) return false; // F12
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 'I'.charCodeAt(0)) return false;
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 'C'.charCodeAt(0)) return false;
+            if (e.ctrlKey && e.keyCode === 'U'.charCodeAt(0)) return false;
+        }
+    </script>
+</body>
+</html>
+
     <!-- Header -->
     <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 shadow-lg">
         <div class="container mx-auto flex justify-between items-center">

@@ -1,63 +1,494 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <title>เกมลากคำ</title>
-  <style>
-    * {
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .word-option {
-      user-select: auto !important;
-      cursor: grab;
-      background-color: #4CAF50;
-      color: white;
-      padding: 8px 12px;
-      border-radius: 4px;
-      margin: 5px;
-      display: inline-block;
-    }
-    .word-slot {
-      display: inline-block;
-      width: 100px;
-      height: 30px;
-      border: 2px dashed #aaa;
-      margin: 0 10px;
-      vertical-align: middle;
-      text-align: center;
-      line-height: 30px;
-    }
-  </style>
-</head>
-<body oncontextmenu="return false" onselectstart="return false" ondragstart="return false">
-  <p>ฉันมี <span class="word-slot" ondrop="drop(event)" ondragover="allowDrop(event)"></span> อยู่ในกระเป๋า</p>
-  <div>
-    <div class="word-option" id="word1" draggable="true" ondragstart="drag(event)">หนังสือ</div>
-    <div class="word-option" id="word2" draggable="true" ondragstart="drag(event)">แมว</div>
-  </div>
+    <style>
+        /* ป้องกันการเลือกข้อความทั่วไป */
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            -webkit-touch-callout: none; /* iOS Safari ป้องกันเมนูแตะค้าง */
+        }
+    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>เกมคำราชาศัพท์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Kanit', sans-serif;
+        }
 
-  <script>
-    function allowDrop(ev) {
-      ev.preventDefault();
-    }
-    function drag(ev) {
-      ev.dataTransfer.setData("text", ev.target.id);
-    }
-    function drop(ev) {
-      ev.preventDefault();
-      const data = ev.dataTransfer.getData("text");
-      const word = document.getElementById(data);
-      if (ev.target.firstChild) {
-        document.body.appendChild(ev.target.firstChild); // คืนของเดิม
-      }
-      ev.target.appendChild(word);
-    }
-    document.onkeydown = function(e) {
-      if (e.keyCode === 123 || (e.ctrlKey && ['U', 'C'].includes(e.key.toUpperCase()))) {
-        return false;
-      }
-    };
-  </script>
-</body>
-</html>
+        .game-card {
+            background: linear-gradient(135deg, #ff7f00, #ff9500);
+            box-shadow: 0 8px 32px rgba(255, 127, 0, 0.3);
+        }
+
+        .word-slot {
+            background: rgba(255, 255, 255, 0.9);
+            border: 3px dashed #ff7f00;
+            transition: all 0.3s ease;
+        }
+
+        .word-slot.filled {
+            background: #fff;
+            border: 3px solid #ff7f00;
+            box-shadow: 0 4px 12px rgba(255, 127, 0, 0.2);
+        }
+
+        .word-option {
+            background: linear-gradient(135deg, #ffb366, #ff9500);
+            cursor: grab;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .word-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 127, 0, 0.4);
+        }
+
+        .word-option.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+
+        .correct-effect {
+            animation: correctPulse 0.6s ease-in-out;
+        }
+
+        .wrong-effect {
+            animation: wrongShake 0.6s ease-in-out;
+        }
+
+        @keyframes correctPulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+                background-color: #10b981;
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes wrongShake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-10px);
+                background-color: #ef4444;
+            }
+
+            75% {
+                transform: translateX(10px);
+                background-color: #ef4444;
+            }
+        }
+
+        .timer-warning {
+            animation: timerBlink 1s infinite;
+        }
+
+        @keyframes timerBlink {
+            0%,
+            50% {
+                color: #ef4444;
+            }
+
+            51%,
+            100% {
+                color: #ff7f00;
+            }
+        }
+
+        .score-popup {
+            animation: scoreFloat 1s ease-out;
+        }
+
+        @keyframes scoreFloat {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-50px) scale(1.2);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-orange-100 to-orange-200 min-h-screen">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-bold">🏆 เกมคำราชาศัพท์</h1>
+            <div class="flex items-center space-x-6">
+                <div class="text-center">
+                    <div class="text-sm opacity-90">คะแนน</div>
+                    <div id="score" class="text-2xl font-bold">0</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-sm opacity-90">เวลา</div>
+                    <div id="timer" class="text-2xl font-bold">60</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-sm opacity-90">ระดับ</div>
+                    <div id="level" class="text-2xl font-bold">1</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Area -->
+    <div class="container mx-auto p-6">
+        <!-- Game Card -->
+        <div class="game-card rounded-2xl p-8 mb-6 text-white">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-semibold mb-2">จัดเรียงคำให้ถูกต้อง</h2>
+                <p class="opacity-90">ลากคำมาวางในช่องให้เรียงเป็นประโยคที่ถูกต้อง</p>
+            </div>
+
+            <!-- Word Slots -->
+            <div id="wordSlots" class="flex flex-wrap justify-center gap-3 mb-8 min-h-[80px]">
+                <!-- Slots will be generated here -->
+            </div>
+
+            <!-- Word Options -->
+            <div class="bg-white bg-opacity-20 rounded-xl p-6">
+                <h3 class="text-lg font-semibold mb-4 text-center">คำที่ใช้</h3>
+                <div id="wordOptions" class="flex flex-wrap justify-center gap-3">
+                    <!-- Options will be generated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+            <h3 class="text-2xl font-bold text-orange-600 mb-4 text-center">🏅 อันดับคะแนน</h3>
+            <div id="leaderboard" class="space-y-2">
+                <!-- Leaderboard will be populated here -->
+            </div>
+        </div>
+
+        <!-- Credits -->
+        <div class="bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-2xl p-6 text-center">
+            <h3 class="text-xl font-bold mb-3">👨‍💻 ผู้สร้าง</h3>
+            <div class="grid md:grid-cols-3 gap-4">
+                <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                    <div class="font-semibold">นาย นิพิฐพนธ์ คุณสิทธิ์</div>
+                    <div class="text-sm opacity-90">เลขที่ 38</div>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                    <div class="font-semibold">นาย ปกรณ์ กองอุบล</div>
+                    <div class="text-sm opacity-90">เลขที่ 11</div>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                    <div class="font-semibold">นาย รัฐภูมิ ศิรินาม</div>
+                    <div class="text-sm opacity-90">เลขที่ 23</div>
+                </div>
+            </div>
+            <div class="mt-3 text-sm opacity-90">ม.5/5</div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md mx-4 text-center">
+            <h2 class="text-3xl font-bold text-orange-600 mb-4">🎉 เกมจบแล้ว!</h2>
+            <div class="text-6xl mb-4">🏆</div>
+            <p class="text-xl mb-2">คะแนนรวม: <span id="finalScore" class="font-bold text-orange-600">0</span></p>
+            <p class="text-lg mb-6">ระดับสูงสุด: <span id="finalLevel" class="font-bold text-orange-600">1</span></p>
+            <button onclick="restartGame()"
+                class="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-3 rounded-full font-semibold hover:from-orange-600 hover:to-orange-700 transition-all">
+                🔄 เล่นใหม่
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Game data
+        const sentences = [
+            { words: ['พระบาท', 'สมเด็จ', 'พระเจ้าอยู่หัว'], meaning: 'พระมหากษัตริย์' },
+            { words: ['ทรง', 'พระราชดำเนิน'], meaning: 'เสด็จ' },
+            { words: ['เสด็จ', 'พระราชดำเนิน', 'ไป'], meaning: 'ไปราชการ' },
+            { words: ['ทรง', 'พระราชทาน'], meaning: 'ให้' },
+            { words: ['รับสั่ง', 'พระราชวินิจฉัย'], meaning: 'ตัดสินใจ' },
+            { words: ['พระราช', 'ประสงค์'], meaning: 'ต้องการ' },
+            { words: ['ทรง', 'พระราชนิพนธ์'], meaning: 'เขียน' },
+            { words: ['เฝ้า', 'ทูลละอองธุลีพระบาท'], meaning: 'เข้าเฝ้า' },
+            { words: ['ทูล', 'เกล้า', 'ทูล', 'กระหม่อม'], meaning: 'กราบทูล' },
+            { words: ['พระราช', 'อนุญาต'], meaning: 'อนุญาต' }
+        ];
+
+        let currentSentence = {};
+        let score = 0;
+        let level = 1;
+        let timeLeft = 60;
+        let gameTimer;
+        let usedSentences = [];
+        let leaderboardData = JSON.parse(localStorage.getItem('leaderboard')) || [];
+
+        // Initialize game
+        function initGame() {
+            updateDisplay();
+            updateLeaderboard();
+            startTimer();
+            loadNewSentence();
+        }
+
+        // Load new sentence
+        function loadNewSentence() {
+            // Filter out used sentences
+            const availableSentences = sentences.filter((_, index) => !usedSentences.includes(index));
+
+            if (availableSentences.length === 0) {
+                // Reset used sentences if all are used
+                usedSentences = [];
+            }
+
+            const randomIndex = Math.floor(Math.random() * (availableSentences.length || sentences.length));
+            const sentenceIndex = availableSentences.length ?
+                sentences.indexOf(availableSentences[randomIndex]) : randomIndex;
+
+            usedSentences.push(sentenceIndex);
+            currentSentence = { ...sentences[sentenceIndex] };
+
+            // Shuffle words for options
+            currentSentence.shuffledWords = [...currentSentence.words].sort(() => Math.random() - 0.5);
+
+            renderGame();
+        }
+
+        // Render game elements
+        function renderGame() {
+            const slotsContainer = document.getElementById('wordSlots');
+            const optionsContainer = document.getElementById('wordOptions');
+
+            // Clear containers
+            slotsContainer.innerHTML = '';
+            optionsContainer.innerHTML = '';
+
+            // Create slots
+            currentSentence.words.forEach((word, index) => {
+                const slot = document.createElement('div');
+                slot.className = 'word-slot rounded-lg p-4 min-w-[120px] h-16 flex items-center justify-center text-orange-800 font-semibold border-2';
+                slot.dataset.index = index;
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('drop', handleDrop);
+                slotsContainer.appendChild(slot);
+            });
+
+            // Create word options
+            currentSentence.shuffledWords.forEach((word, index) => {
+                const option = document.createElement('div');
+                option.className = 'word-option rounded-lg px-4 py-3 text-white font-semibold shadow-lg';
+                option.textContent = word;
+                option.draggable = true;
+                option.dataset.word = word;
+                option.addEventListener('dragstart', handleDragStart);
+                option.addEventListener('dragend', handleDragEnd);
+                optionsContainer.appendChild(option);
+            });
+        }
+
+        // Drag and drop handlers
+        let draggedElement = null;
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const slot = e.target.closest('.word-slot');
+            const slotIndex = parseInt(slot.dataset.index);
+
+            if (draggedElement && slot && !slot.textContent.trim()) {
+                // Move word to slot
+                slot.textContent = draggedElement.dataset.word;
+                slot.classList.add('filled');
+                draggedElement.style.display = 'none';
+
+                // Check if sentence is complete
+                checkSentence();
+            }
+        }
+
+        // Check if sentence is correct
+        function checkSentence() {
+            const slots = document.querySelectorAll('.word-slot');
+            const userSentence = Array.from(slots).map(slot => slot.textContent.trim());
+
+            // Check if all slots are filled
+            if (userSentence.some(word => !word)) return;
+
+            const isCorrect = userSentence.every((word, index) => word === currentSentence.words[index]);
+
+            if (isCorrect) {
+                handleCorrectAnswer();
+            } else {
+                handleWrongAnswer();
+            }
+        }
+
+        // Handle correct answer
+        function handleCorrectAnswer() {
+            const gameCard = document.querySelector('.game-card');
+            gameCard.classList.add('correct-effect');
+
+            // Calculate score based on time and level
+            const timeBonus = Math.max(0, timeLeft - 30);
+            const levelBonus = level * 10;
+            const totalPoints = 100 + timeBonus + levelBonus;
+
+            score += totalPoints;
+            level++;
+
+            // Show score popup
+            showScorePopup(`+${totalPoints}`, 'correct');
+
+            setTimeout(() => {
+                gameCard.classList.remove('correct-effect');
+                updateDisplay();
+                loadNewSentence();
+            }, 1000);
+        }
+
+        // Handle wrong answer
+        function handleWrongAnswer() {
+            const gameCard = document.querySelector('.game-card');
+            gameCard.classList.add('wrong-effect');
+
+            score = Math.max(0, score - 20);
+            showScorePopup('-20', 'wrong');
+
+            setTimeout(() => {
+                gameCard.classList.remove('wrong-effect');
+                updateDisplay();
+                resetCurrentSentence();
+            }, 1000);
+        }
+
+        // Reset current sentence
+        function resetCurrentSentence() {
+            const slots = document.querySelectorAll('.word-slot');
+            const options = document.querySelectorAll('.word-option');
+
+            slots.forEach(slot => {
+                slot.textContent = '';
+                slot.classList.remove('filled');
+            });
+
+            options.forEach(option => {
+                option.style.display = 'block';
+            });
+        }
+
+        // Show score popup
+        function showScorePopup(points, type) {
+            const popup = document.createElement('div');
+            popup.className = `score-popup fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl font-bold z-50 ${type === 'correct' ? 'text-green-500' : 'text-red-500'}`;
+            popup.textContent = points;
+            document.body.appendChild(popup);
+
+            setTimeout(() => {
+                document.body.removeChild(popup);
+            }, 1000);
+        }
+
+        // Timer functions
+        function startTimer() {
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+
+                if (timeLeft <= 10) {
+                    document.getElementById('timer').classList.add('timer-warning');
+                }
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        // Update display
+        function updateDisplay() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('level').textContent = level;
+            document.getElementById('timer').textContent = timeLeft;
+        }
+
+        // End game
+        function endGame() {
+            clearInterval(gameTimer);
+
+            // Save to leaderboard
+            const playerData = {
+                score: score,
+                level: level,
+                date: new Date().toLocaleDateString('th-TH')
+            };
+
+            leaderboardData.push(playerData);
+            leaderboardData.sort((a, b) => b.score - a.score);
+            leaderboardData = leaderboardData.slice(0, 10); // Keep top 10
+
+            localStorage.setItem('leaderboard', JSON.stringify(leaderboardData));
+
+            // Show game over modal
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalLevel').textContent = level;
+            document.getElementById('gameOverModal').classList.remove('hidden');
+            document.getElementById('gameOverModal').classList.add('flex');
+        }
+
+        // Restart game
+        function restartGame() {
+            score = 0;
+            level = 1;
+            timeLeft = 60;
+            usedSentences = [];
+
+            document.getElementById('gameOverModal').classList.add('hidden');
+            document.getElementById('gameOverModal').classList.remove('flex');
+            document.getElementById('timer').classList.remove('timer-warning');
+
+            updateDisplay();
+            updateLeaderboard();
+            startTimer();
+            loadNewSentence();
+        }
+
+        // Update leaderboard
+        function updateLeaderboard() {
+            const leaderboardContainer = document.getElementById('leaderboard');
+            leaderboardContainer.innerHTML = '';
+
+            if (leaderboardData.length === 0) {
+                leaderboardContainer.innerHTML = '<p class="text-center text-gray-500">ยังไม่มีข้อมูลคะแนน</p>';
+                return;
+            }
+
+            leaderboardData.forEach((data,

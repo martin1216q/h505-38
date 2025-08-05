@@ -780,5 +780,15 @@
         renderLeaderboard();
         
     </script>
+    if (!localStorage.getItem("players")) {
+    const initialPlayers = [
+        { name: "ผู้เล่น A", score: 2400 },
+        { name: "ผู้เล่น B", score: 1600 },
+        { name: "ผู้เล่น C", score: 1200 }
+    ];
+    localStorage.setItem("players", JSON.stringify(initialPlayers));
+}
+
 </body>
 </html>
+
